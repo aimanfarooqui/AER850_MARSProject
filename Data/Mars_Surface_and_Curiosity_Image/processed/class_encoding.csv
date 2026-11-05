@@ -1,0 +1,25 @@
+class_name,encoded_label
+apxs,0
+apxs cal target,1
+chemcam cal target,2
+chemin inlet open,3
+drill,4
+drill holes,5
+drt front,6
+drt side,7
+ground,8
+horizon,9
+inlet,10
+mahli,11
+mahli cal target,12
+mastcam,13
+mastcam cal target,14
+observation tray,15
+portion box,16
+portion tube,17
+portion tube opening,18
+rems uv sensor,19
+rover rear deck,20
+scoop,21
+turret,22
+wheel,23

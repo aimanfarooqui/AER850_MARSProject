@@ -2,7 +2,7 @@
 import os
 import numpy as np
 import pandas as pd
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from PIL import Image
  
 # Work from the folder this script is saved in (the repo folder)
@@ -84,3 +84,50 @@ print("Duplicate entries:", dupes.sum())
 df = df[(~bad_label) & (df["status"] == "ok") & (~dupes)].reset_index(drop=True)
 print(f"\nREPORT: started with {n_start} entries, removed {n_start - len(df)}, "
       f"{len(df)} remain.")
+
+#%% 1c. STRATIFIED RE-SPLIT (same class proportions in every split)
+from sklearn.model_selection import train_test_split
+
+train_df, temp_df = train_test_split(df, test_size=0.30,
+                                     stratify=df["class_name"], random_state=42)
+val_df, test_df = train_test_split(temp_df, test_size=0.50,
+                                   stratify=temp_df["class_name"], random_state=42)
+
+df["split"] = "train"
+df.loc[val_df.index, "split"] = "val"
+df.loc[test_df.index, "split"] = "test"
+
+print(df["split"].value_counts())
+print(pd.crosstab(df["class_name"], df["split"]))   # images per class per split
+
+#%% 2a. CATEGORICAL DATA: label encoding
+from sklearn.preprocessing import LabelEncoder
+ 
+# Gives each class present a number 0, 1, 2... with no gaps
+# (the "sun" class has no images, so 24 classes are used, not 25)
+encoder = LabelEncoder()
+df["label"] = encoder.fit_transform(df["class_name"])
+n_classes = len(encoder.classes_)
+ 
+class_table = pd.DataFrame({"class_name": encoder.classes_,
+                            "encoded_label": range(n_classes)})
+print("Number of classes:", n_classes)
+print(class_table.to_string(index=False))   # copy this table into the report
+class_table.to_csv(os.path.join(OUT_DIR, "class_encoding.csv"), index=False)
+ 
+ 
+#%% 2b. CATEGORICAL DATA: one-hot encoding
+one_hot = np.eye(n_classes, dtype=int)[df["label"].values]
+print("One-hot shape:", one_hot.shape)
+print("Example, first image:", df.loc[0, "class_name"], "->", one_hot[0])
+ 
+
+#%% 2c. CLASS IMBALANCE (bar chart for the report)
+counts = df[df["split"] == "train"]["class_name"].value_counts()
+plt.figure(figsize=(10, 5))
+counts.plot(kind="bar")
+plt.title("Number of training images per class")
+plt.ylabel("Images")
+plt.tight_layout()
+plt.savefig(os.path.join(OUT_DIR, "class_counts.png"), dpi=200)
+plt.show()
