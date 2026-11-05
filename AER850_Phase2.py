@@ -131,3 +131,71 @@ plt.ylabel("Images")
 plt.tight_layout()
 plt.savefig(os.path.join(OUT_DIR, "class_counts.png"), dpi=200)
 plt.show()
+
+# Class weights: rare classes get a bigger weight during training
+# weight = total training images / (number of classes * images in that class)
+from sklearn.utils.class_weight import compute_class_weight
+train_labels = df[df["split"] == "train"]["label"].values
+present = np.unique(train_labels)
+weights = compute_class_weight("balanced", classes=present, y=train_labels)
+print("REPORT: largest class:", counts.idxmax(), counts.max(),
+      "| smallest class:", counts.idxmin(), counts.min())
+print("Class weights:", dict(zip(encoder.inverse_transform(present),
+                                 [round(float(w), 2) for w in weights])))
+
+#%% 3a. SCALE AND NORMALIZE: look at the raw images first
+sizes, modes = [], []
+for path in df["path"].sample(min(300, len(df)), random_state=0):
+    with Image.open(path) as im:
+        sizes.append(im.size)
+        modes.append(im.mode)
+print("REPORT: different image sizes in a sample of 300:", len(set(sizes)))
+print("Example sizes:", list(set(sizes))[:5])
+print("Colour modes:", pd.Series(modes).value_counts().to_dict())  # L = grayscale
+ 
+ 
+#%% 3b. RESIZE + CONVERT TO RGB, save processed copies
+# Saved as PNGs with pixels 0-255. Scaling to 0-1 happens when loading
+# (next cell), because saving 6000+ scaled images would use ~4 GB.
+PROC_IMG_DIR = os.path.join(OUT_DIR, f"images_{IMG_SIZE}")
+os.makedirs(PROC_IMG_DIR, exist_ok=True)
+ 
+new_paths = []
+for i, (name, path) in enumerate(zip(df["file"], df["path"])):
+    out_path = os.path.join(PROC_IMG_DIR, os.path.splitext(name)[0] + ".png")
+    if not os.path.exists(out_path):          # skip images already done
+        with Image.open(path) as im:
+            im.convert("RGB").resize((IMG_SIZE, IMG_SIZE)).save(out_path)
+    new_paths.append(out_path)
+    if i % 500 == 0:
+        print(f"{i}/{len(df)} images processed")
+df["processed_path"] = new_paths
+print("Done resizing.")
+ 
+ 
+#%% 3c. NORMALIZE: before vs after (figure + numbers for the report)
+def load_normalized(path):
+    """Load a processed image and scale pixels from 0-255 to 0-1."""
+    return np.asarray(Image.open(path), dtype=np.float32) / 255.0
+ 
+raw_arr = np.asarray(Image.open(df.loc[0, "path"]))
+norm_arr = load_normalized(df.loc[0, "processed_path"])
+ 
+print("REPORT: BEFORE shape", raw_arr.shape, "| pixel range", raw_arr.min(), "to", raw_arr.max())
+print("REPORT: AFTER  shape", norm_arr.shape, "| pixel range",
+      round(float(norm_arr.min()), 3), "to", round(float(norm_arr.max()), 3))
+ 
+fig, ax = plt.subplots(1, 2, figsize=(9, 4))
+ax[0].imshow(raw_arr, cmap="gray" if raw_arr.ndim == 2 else None)
+ax[0].set_title(f"Original {raw_arr.shape[1]}x{raw_arr.shape[0]}, 0-255")
+ax[1].imshow(norm_arr)
+ax[1].set_title(f"Processed {IMG_SIZE}x{IMG_SIZE}, 0-1")
+for a in ax:
+    a.axis("off")
+plt.tight_layout()
+plt.savefig(os.path.join(OUT_DIR, "before_after.png"), dpi=200)
+plt.show()
+ 
+# Save the cleaned, encoded image list (part of your "processed data")
+df[["file", "class_name", "label", "split"]].to_csv(
+    os.path.join(OUT_DIR, "processed_labels.csv"), index=False)
