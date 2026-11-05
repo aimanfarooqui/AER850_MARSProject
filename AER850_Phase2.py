@@ -202,3 +202,76 @@ plt.show()
 # Save the cleaned, encoded image list (part of your "processed data")
 df[["file", "class_name", "label", "split"]].to_csv(
     os.path.join(OUT_DIR, "processed_labels.csv"), index=False)
+
+#%% 4a. FEATURE EXTRACTION
+# A pretrained ResNet50 (TensorFlow) turns each image into 2048 numbers.
+
+BATCH = 32
+paths = df["processed_path"].tolist()
+ 
+try:
+    from tensorflow.keras.applications.resnet50 import ResNet50, preprocess_input
+    model = ResNet50(weights="imagenet", include_top=False, pooling="avg")
+    feats = []
+    for start in range(0, len(paths), BATCH):
+        batch = np.stack([np.asarray(Image.open(p), dtype=np.float32)
+                          for p in paths[start:start + BATCH]])
+        # ResNet50 uses its own normalization, so it gets the 0-255 pixels
+        feats.append(model.predict(preprocess_input(batch), verbose=0))
+        print(f"{start + len(batch)}/{len(paths)} images")
+    features = np.vstack(feats)
+    feature_method = "ResNet50 (ImageNet) features"
+except ImportError:
+    print("TensorFlow not found, using simple 32x32 pixel features instead.")
+    features = np.stack([
+        np.asarray(Image.open(p).resize((32, 32)), dtype=np.float32).ravel() / 255.0
+        for p in paths])
+    feature_method = "32x32 pixel features"
+ 
+print("REPORT:", feature_method, "| feature matrix shape:", features.shape)
+
+#%% 4b. FEATURE SELECTION WITH PCA
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+ 
+train_mask = (df["split"] == "train").values
+# Standardize: each feature gets mean 0 and std 1 (fit on training data only)
+scaler = StandardScaler().fit(features[train_mask])
+features_std = scaler.transform(features)
+ 
+# PCA: find the directions of biggest variation in the training data
+pca = PCA().fit(features_std[train_mask])
+cum_var = np.cumsum(pca.explained_variance_ratio_)
+n_keep = int(np.searchsorted(cum_var, 0.95) + 1)          # components for 95% variance
+print(f"REPORT: {features.shape[1]} features reduced to {n_keep} "
+      f"principal components (keeps 95% of the variance).")
+ 
+plt.figure(figsize=(7, 4))
+plt.plot(np.arange(1, len(cum_var) + 1), cum_var)
+plt.axhline(0.95, linestyle="--", color="gray")
+plt.axvline(n_keep, linestyle="--", color="gray")
+plt.xlabel("Number of principal components")
+plt.ylabel("Cumulative explained variance")
+plt.title("PCA explained variance")
+plt.tight_layout()
+plt.savefig(os.path.join(OUT_DIR, "pca_variance.png"), dpi=200)
+plt.show()
+ 
+pca_final = PCA(n_components=n_keep).fit(features_std[train_mask])
+reduced = pca_final.transform(features_std)              # keep the top n_keep components
+ 
+ 
+#%% 4c. 2D VIEW OF THE FEATURES (do similar classes group together?)
+pca2 = reduced[:, :2]                                     # first two components
+plt.figure(figsize=(9, 7))
+top = df["class_name"].value_counts().index[:8]           # 8 biggest classes, readable
+for name in top:
+    m = (df["class_name"] == name).values
+    plt.scatter(pca2[m, 0], pca2[m, 1], s=8, label=name, alpha=0.6)
+plt.legend(markerscale=2, fontsize=8)
+plt.xlabel("PC 1")
+plt.ylabel("PC 2")
+plt.title(f"First two principal components ({feature_method})")
+plt.tight_layout()
+plt.savefig(os.path.join(OUT_DIR, "pca_2d.png"), dpi=200)
+plt.show()
