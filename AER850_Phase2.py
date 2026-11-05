@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from PIL import Image
+from PIL import ImageOps
  
 # Work from the folder this script is saved in (the repo folder)
 try:
@@ -157,7 +158,7 @@ print("Colour modes:", pd.Series(modes).value_counts().to_dict())  # L = graysca
 #%% 3b. RESIZE + CONVERT TO RGB, save processed copies
 # Saved as PNGs with pixels 0-255. Scaling to 0-1 happens when loading
 # (next cell), because saving 6000+ scaled images would use ~4 GB.
-PROC_IMG_DIR = os.path.join(OUT_DIR, f"images_{IMG_SIZE}")
+PROC_IMG_DIR = os.path.join(OUT_DIR, f"images_{IMG_SIZE}_padded")
 os.makedirs(PROC_IMG_DIR, exist_ok=True)
  
 new_paths = []
@@ -165,7 +166,9 @@ for i, (name, path) in enumerate(zip(df["file"], df["path"])):
     out_path = os.path.join(PROC_IMG_DIR, os.path.splitext(name)[0] + ".png")
     if not os.path.exists(out_path):          # skip images already done
         with Image.open(path) as im:
-            im.convert("RGB").resize((IMG_SIZE, IMG_SIZE)).save(out_path)
+            # pad to a square with black borders, then resize (keeps proportions)
+            ImageOps.pad(im.convert("RGB"), (IMG_SIZE, IMG_SIZE),
+                         color=(0, 0, 0)).save(out_path)
     new_paths.append(out_path)
     if i % 500 == 0:
         print(f"{i}/{len(df)} images processed")
