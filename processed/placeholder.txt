@@ -1,1 +1,1 @@
-This folder will be used for the processed outputs and csv’s of preprocessing.ipynb
+This folder is be used for the processed outputs and csvâ€™s of preprocessing.ipynb once it's ran -- it is in gitignore so no outputs are being saved to GitHub, only locally.
