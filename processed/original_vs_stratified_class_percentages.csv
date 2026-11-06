@@ -1,0 +1,51 @@
+split_strategy,label,class_name,train_count,train_percent,validation_count,validation_percent,test_count,test_percent
+original,0,apxs,30,0.8,16,0.98,34,2.61
+original,1,apxs cal target,6,0.16,4,0.24,14,1.07
+original,2,chemcam cal target,15,0.4,0,0.0,21,1.61
+original,3,chemin inlet open,47,1.25,45,2.74,84,6.44
+original,4,drill,19,0.51,20,1.22,20,1.53
+original,5,drill holes,36,0.96,470,28.66,0,0.0
+original,6,drt front,4,0.11,2,0.12,60,4.6
+original,7,drt side,8,0.21,4,0.24,150,11.49
+original,8,ground,2343,62.55,87,5.3,254,19.46
+original,9,horizon,224,5.98,75,4.57,72,5.52
+original,10,inlet,165,4.4,96,5.85,16,1.23
+original,11,mahli,14,0.37,0,0.0,12,0.92
+original,12,mahli cal target,32,0.85,28,1.71,57,4.37
+original,13,mastcam,36,0.96,0,0.0,32,2.45
+original,14,mastcam cal target,101,2.7,4,0.24,48,3.68
+original,15,observation tray,85,2.27,14,0.85,12,0.92
+original,16,portion box,18,0.48,20,1.22,48,3.68
+original,17,portion tube,73,1.95,55,3.35,9,0.69
+original,18,portion tube opening,8,0.21,12,0.73,2,0.15
+original,19,rems uv sensor,12,0.32,20,1.22,36,2.76
+original,20,rover rear deck,57,1.52,0,0.0,14,1.07
+original,21,scoop,166,4.43,24,1.46,10,0.77
+original,22,sun,0,0.0,0,0.0,0,0.0
+original,23,turret,178,4.75,15,0.91,0,0.0
+original,24,wheel,69,1.84,629,38.35,300,22.99
+stratified,0,apxs,56,1.2,12,1.2,12,1.2
+stratified,1,apxs cal target,17,0.36,4,0.4,3,0.3
+stratified,2,chemcam cal target,25,0.53,5,0.5,6,0.6
+stratified,3,chemin inlet open,123,2.63,27,2.69,26,2.59
+stratified,4,drill,41,0.88,9,0.9,9,0.9
+stratified,5,drill holes,354,7.56,76,7.57,76,7.57
+stratified,6,drt front,46,0.98,10,1.0,10,1.0
+stratified,7,drt side,113,2.41,24,2.39,25,2.49
+stratified,8,ground,1879,40.12,402,40.04,403,40.14
+stratified,9,horizon,260,5.55,56,5.58,55,5.48
+stratified,10,inlet,194,4.14,41,4.08,42,4.18
+stratified,11,mahli,18,0.38,4,0.4,4,0.4
+stratified,12,mahli cal target,82,1.75,17,1.69,18,1.79
+stratified,13,mastcam,48,1.02,10,1.0,10,1.0
+stratified,14,mastcam cal target,107,2.28,23,2.29,23,2.29
+stratified,15,observation tray,78,1.67,17,1.69,16,1.59
+stratified,16,portion box,60,1.28,13,1.29,13,1.29
+stratified,17,portion tube,96,2.05,21,2.09,20,1.99
+stratified,18,portion tube opening,15,0.32,4,0.4,3,0.3
+stratified,19,rems uv sensor,48,1.02,10,1.0,10,1.0
+stratified,20,rover rear deck,50,1.07,10,1.0,11,1.1
+stratified,21,scoop,140,2.99,30,2.99,30,2.99
+stratified,22,sun,0,0.0,0,0.0,0,0.0
+stratified,23,turret,135,2.88,29,2.89,29,2.89
+stratified,24,wheel,698,14.9,150,14.94,150,14.94
